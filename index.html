@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#d81b60" />
+  <title>Glamour Makeup • Controle</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">G</div>
+      <div class="brandText">
+        <div class="brandName">Glamour Makeup</div>
+        <div class="brandTag">Estoque • Livro Caixa • Vendas (Offline)</div>
+      </div>
+    </div>
+
+    <div class="topActions">
+      <button class="btn ghost" id="btnInstall" hidden>Instalar</button>
+      <button class="btn ghost" id="btnBackup">Backup</button>
+      <label class="btn ghost file">
+        Restaurar
+        <input id="restoreFile" type="file" accept="application/json" hidden />
+      </label>
+      <button class="btn" id="btnQuickAddSale">+ Venda</button>
+    </div>
+  </header>
+
+  <main class="shell">
+    <aside class="sidebar" id="sidebar">
+      <button class="navItem active" data-tab="dashboard">📊 Painel</button>
+      <button class="navItem" data-tab="produtos">📦 Produtos</button>
+      <button class="navItem" data-tab="vendas">🧾 Diário de Vendas</button>
+      <button class="navItem" data-tab="caixa">💰 Livro Caixa</button>
+      <button class="navItem" data-tab="relatorios">📈 Relatórios</button>
+      <div class="spacer"></div>
+
+      <div class="mini">
+        <div class="miniRow">
+          <span class="dot" id="dotSync" title="Status"></span>
+          <span id="statusText">Pronto</span>
+        </div>
+        <div class="miniRow small" id="dbInfo">Base local: OK</div>
+      </div>
+    </aside>
+
+    <section class="content">
+      <!-- DASHBOARD -->
+      <section class="tab show" id="tab-dashboard">
+        <div class="grid2">
+          <div class="card">
+            <div class="cardTitle">Hoje</div>
+            <div class="kpis">
+              <div class="kpi">
+                <div class="kpiLabel">Vendas</div>
+                <div class="kpiValue" id="kpiSalesCount">0</div>
+              </div>
+              <div class="kpi">
+                <div class="kpiLabel">Receita</div>
+                <div class="kpiValue" id="kpiRevenue">R$ 0,00</div>
+              </div>
+              <div class="kpi">
+                <div class="kpiLabel">Lucro</div>
+                <div class="kpiValue" id="kpiProfit">R$ 0,00</div>
+              </div>
+            </div>
+            <div class="hint">Dica: registra venda no diário e o caixa entra automático. 😎</div>
+          </div>
+
+          <div class="card">
+            <div class="cardTitle">Reposição</div>
+            <div class="row">
+              <input class="input" id="searchLow" placeholder="Filtrar produtos em alerta…" />
+              <button class="btn ghost" id="btnCreatePurchaseList">Gerar lista</button>
+            </div>
+            <div class="list" id="lowStockList"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="cardTitle">Últimas vendas</div>
+          <div class="tableWrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Hora</th>
+                  <th>Itens</th>
+                  <th>Total</th>
+                  <th>Pagamento</th>
+                  <th>Lucro</th>
+                </tr>
+              </thead>
+              <tbody id="recentSalesTbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- PRODUTOS -->
+      <section class="tab" id="tab-produtos">
+        <div class="card">
+          <div class="cardTitle">Produtos</div>
+
+          <div class="toolbar">
+            <input class="input grow" id="searchProduct" placeholder="Buscar por nome, categoria, código…" />
+            <button class="btn ghost" id="btnNewProduct">+ Produto</button>
+          </div>
+
+          <div class="tableWrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Produto</th>
+                  <th>Categoria</th>
+                  <th>Estoque</th>
+                  <th>Alerta</th>
+                  <th>Custo</th>
+                  <th>Venda</th>
+                  <th>Margem</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="productsTbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="cardTitle">Entrada/Saída rápida de estoque</div>
+          <div class="grid3">
+            <input class="input" id="stockSku" placeholder="Código/SKU (opcional)" />
+            <input class="input" id="stockName" placeholder="Nome do produto (obrigatório)" />
+            <input class="input" id="stockQty" placeholder="Quantidade (+/-)" type="number" step="1" />
+          </div>
+          <div class="row">
+            <input class="input grow" id="stockNote" placeholder="Obs (ex.: 'chegou reposição', 'quebrou', etc.)" />
+            <button class="btn" id="btnApplyStock">Aplicar</button>
+          </div>
+          <div class="hint">Isso ajusta estoque sem mexer no caixa (bom pra inventário).</div>
+        </div>
+      </section>
+
+      <!-- VENDAS -->
+      <section class="tab" id="tab-vendas">
+        <div class="card">
+          <div class="cardTitle">Registrar venda</div>
+
+          <div class="grid2">
+            <div>
+              <label class="label">Cliente (opcional)</label>
+              <input class="input" id="saleCustomer" placeholder="Nome do cliente…" />
+            </div>
+            <div>
+              <label class="label">Pagamento</label>
+              <select class="input" id="salePayment">
+                <option value="Dinheiro">Dinheiro</option>
+                <option value="Pix">Pix</option>
+                <option value="Cartão Débito">Cartão Débito</option>
+                <option value="Cartão Crédito">Cartão Crédito</option>
+                <option value="Crediário">Crediário</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row">
+            <input class="input grow" id="saleAddProduct" placeholder="Adicionar item (digite e escolha)…" list="productsDatalist" />
+            <datalist id="productsDatalist"></datalist>
+            <input class="input small" id="saleItemQty" type="number" min="1" step="1" value="1" />
+            <button class="btn ghost" id="btnAddItem">Adicionar</button>
+          </div>
+
+          <div class="tableWrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th>Qtd</th>
+                  <th>Preço</th>
+                  <th>Total</th>
+                  <th>Lucro</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="saleItemsTbody"></tbody>
+            </table>
+          </div>
+
+          <div class="row spaceBetween">
+            <div class="saleTotals">
+              <div><span>Total:</span> <strong id="saleTotal">R$ 0,00</strong></div>
+              <div><span>Lucro:</span> <strong id="saleProfit">R$ 0,00</strong></div>
+            </div>
+            <div class="row">
+              <button class="btn ghost" id="btnClearSale">Limpar</button>
+              <button class="btn" id="btnSaveSale">Salvar venda</button>
+            </div>
+          </div>
+
+          <div class="hint">
+            Ao salvar: baixa estoque automaticamente + lança entrada no livro caixa (bem no estilo “sem retrabalho”).
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="cardTitle">Diário de vendas</div>
+          <div class="toolbar">
+            <input class="input" id="salesFrom" type="date" />
+            <input class="input" id="salesTo" type="date" />
+            <input class="input grow" id="salesSearch" placeholder="Buscar (cliente, item, pagamento)..." />
+            <button class="btn ghost" id="btnExportSalesCsv">Exportar CSV</button>
+          </div>
+
+          <div class="tableWrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Cliente</th>
+                  <th>Itens</th>
+                  <th>Total</th>
+                  <th>Lucro</th>
+                  <th>Pagamento</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="salesTbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- CAIXA -->
+      <section class="tab" id="tab-caixa">
+        <div class="card">
+          <div class="cardTitle">Livro Caixa</div>
+
+          <div class="toolbar">
+            <select class="input" id="cashType">
+              <option value="Entrada">Entrada</option>
+              <option value="Saída">Saída</option>
+            </select>
+            <input class="input" id="cashDesc" placeholder="Descrição (ex.: aluguel, fornecedor, etc.)" />
+            <input class="input small" id="cashValue" placeholder="Valor" inputmode="decimal" />
+            <button class="btn" id="btnAddCash">Lançar</button>
+          </div>
+
+          <div class="toolbar">
+            <input class="input" id="cashFrom" type="date" />
+            <input class="input" id="cashTo" type="date" />
+            <input class="input grow" id="cashSearch" placeholder="Buscar no caixa..." />
+            <button class="btn ghost" id="btnExportCashCsv">Exportar CSV</button>
+          </div>
+
+          <div class="kpis smallKpis">
+            <div class="kpi">
+              <div class="kpiLabel">Entradas</div>
+              <div class="kpiValue" id="cashIn">R$ 0,00</div>
+            </div>
+            <div class="kpi">
+              <div class="kpiLabel">Saídas</div>
+              <div class="kpiValue" id="cashOut">R$ 0,00</div>
+            </div>
+            <div class="kpi">
+              <div class="kpiLabel">Saldo</div>
+              <div class="kpiValue" id="cashBalance">R$ 0,00</div>
+            </div>
+          </div>
+
+          <div class="tableWrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Tipo</th>
+                  <th>Descrição</th>
+                  <th>Valor</th>
+                  <th>Origem</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="cashTbody"></tbody>
+            </table>
+          </div>
+          <div class="hint">
+            Vendas entram aqui automaticamente como “Origem: Venda”.
+          </div>
+        </div>
+      </section>
+
+      <!-- RELATÓRIOS -->
+      <section class="tab" id="tab-relatorios">
+        <div class="card">
+          <div class="cardTitle">Relatórios</div>
+          <div class="toolbar">
+            <input class="input" id="repFrom" type="date" />
+            <input class="input" id="repTo" type="date" />
+            <button class="btn" id="btnRunReports">Gerar</button>
+            <button class="btn ghost" id="btnExportReportCsv">Exportar resumo CSV</button>
+          </div>
+
+          <div class="grid2">
+            <div class="card inner">
+              <div class="cardTitle small">Resumo (período)</div>
+              <div class="reportLine"><span>Receita</span><strong id="repRevenue">R$ 0,00</strong></div>
+              <div class="reportLine"><span>Lucro</span><strong id="repProfit">R$ 0,00</strong></div>
+              <div class="reportLine"><span>Nº de vendas</span><strong id="repCount">0</strong></div>
+              <div class="reportLine"><span>Ticket médio</span><strong id="repAvg">R$ 0,00</strong></div>
+            </div>
+
+            <div class="card inner">
+              <div class="cardTitle small">Top produtos (por receita)</div>
+              <div class="list" id="topProductsList"></div>
+            </div>
+          </div>
+
+          <div class="card inner">
+            <div class="cardTitle small">Alertas de reposição (com sugestão)</div>
+            <div class="list" id="restockSuggestList"></div>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <!-- MODAL: PRODUTO -->
+  <dialog class="modal" id="productModal">
+    <form method="dialog" class="modalCard" id="productForm">
+      <div class="modalHeader">
+        <div>
+          <div class="modalTitle" id="productModalTitle">Novo produto</div>
+          <div class="modalSub">Campos pensados pra loja: custo, venda, alerta e categoria.</div>
+        </div>
+        <button class="btn ghost" value="cancel" type="submit">Fechar</button>
+      </div>
+
+      <div class="grid2">
+        <div>
+          <label class="label">Nome</label>
+          <input class="input" id="pName" required />
+        </div>
+        <div>
+          <label class="label">Categoria</label>
+          <input class="input" id="pCategory" placeholder="Batom, Pele, Olhos..." />
+        </div>
+      </div>
+
+      <div class="grid3">
+        <div>
+          <label class="label">SKU/Código</label>
+          <input class="input" id="pSku" placeholder="Opcional" />
+        </div>
+        <div>
+          <label class="label">Estoque</label>
+          <input class="input" id="pStock" type="number" step="1" min="0" value="0" />
+        </div>
+        <div>
+          <label class="label">Alerta (mínimo)</label>
+          <input class="input" id="pMin" type="number" step="1" min="0" value="0" />
+        </div>
+      </div>
+
+      <div class="grid3">
+        <div>
+          <label class="label">Custo (R$)</label>
+          <input class="input" id="pCost" inputmode="decimal" placeholder="0,00" />
+        </div>
+        <div>
+          <label class="label">Preço venda (R$)</label>
+          <input class="input" id="pPrice" inputmode="decimal" placeholder="0,00" />
+        </div>
+        <div>
+          <label class="label">Fornecedor</label>
+          <input class="input" id="pSupplier" placeholder="Opcional" />
+        </div>
+      </div>
+
+      <div>
+        <label class="label">Obs</label>
+        <textarea class="input" id="pNotes" rows="3" placeholder="Cor, marca, validade, lote..."></textarea>
+      </div>
+
+      <div class="modalFooter">
+        <button class="btn ghost" id="btnDeleteProduct" type="button" hidden>Excluir</button>
+        <div class="row">
+          <button class="btn ghost" value="cancel" type="submit">Cancelar</button>
+          <button class="btn" id="btnSaveProduct" type="button">Salvar</button>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
